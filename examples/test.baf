@@ -1,0 +1,8 @@
+// Repeatedly prints out 'a' until the end of time
+
+loop:
+    mov A 08 #$61
+    cll #$00 #$0C
+    jmp loop
+
+string: .asciiz "Hello, world!"
