@@ -1,0 +1,40 @@
+first: .uint64 0
+second: .uint64 0
+third: .uint64 1
+
+mov B 08 #$00
+
+loop:
+    mov A 64 second
+    sto A 64 first
+
+    mov A 64 third
+    sto A 64 second
+
+    mov A 64 first
+    // add A 64 second
+    sto A 64 third
+
+    // jsr putd
+
+    mov A 08 #$0A
+    // jsr putc
+
+    // inc B
+
+    mov A 16 #$20
+    // bie A B exit
+    jmp loop
+
+jmp exit
+
+putc:
+    cll #$00 #$0C
+    // rts
+
+putd:
+    cll #$00 #$0D
+    // rts
+
+exit:
+    cll #$02 #$00

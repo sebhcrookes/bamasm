@@ -6,9 +6,16 @@
 
 #include "globals.h"
 
-int line_index = 0;
+Lexer::Lexer(std::string filename) {
+    this->filename = filename;
+}
 
-std::vector<token_t> lex(std::string filename) {
+
+Lexer::~Lexer() {
+
+}
+
+std::vector<Token*> Lexer::lex() {
     std::ifstream input_stream(filename);
 
     if (!input_stream) {
@@ -28,31 +35,31 @@ std::vector<token_t> lex(std::string filename) {
         text.push_back(line);
     }
 
-    std::vector<token_t> tokens = {};
+    std::vector<Token*> tokens = {};
 
     int line_number = 1;
     for(std::string l : text) {
+        line_index = 0;
         while(line_index < l.length()) {
             if(isalpha(l[line_index])) { // Identifier
                 std::string identifier = collect_identifier(l);
-
-                if(identifier.length() == 1 && isalpha(identifier[0])) { // Is a register
-                    token_t token = { identifier, token_type::register_char, line_number };
-                    tokens.push_back(token);
-                } else if(is_mnemonic(identifier)) { // Is a mnemonic
-                    token_t token = { identifier, token_type::mnemonic, line_number };
-                    tokens.push_back(token);
-                } else if(l[line_index] == ':') { // Label
-                    token_t token = { identifier, token_type::label, line_number };
+                if(l[line_index] == ':') { // Label
+                    Token* token = new Token(filename, identifier, TokenType::label, line_number);
                     tokens.push_back(token);
                     line_index++; // Skip the colon
+                } else if(identifier.length() == 1 && isalpha(identifier[0])) { // Is a register
+                    Token* token = new Token(filename, identifier, TokenType::register_char, line_number);
+                    tokens.push_back(token);
+                } else if(is_mnemonic(identifier)) { // Is a mnemonic
+                    Token* token = new Token(filename, identifier, TokenType::mnemonic, line_number);
+                    tokens.push_back(token);
                 } else {
-                    token_t token = { identifier, token_type::identifier, line_number };
+                    Token* token = new Token(filename, identifier, TokenType::identifier, line_number);
                     tokens.push_back(token);
                 }
             } else if(isdigit(l[line_index])) { // Integer
                 std::string int_string = collect_integer(l, false);
-                token_t token = { int_string, token_type::integer, line_number };
+                Token* token = new Token(filename, int_string, TokenType::integer, line_number);
                 tokens.push_back(token);
             } else if(l[line_index] == '#') { // Literal integer
                 line_index++;
@@ -69,7 +76,7 @@ std::vector<token_t> lex(std::string filename) {
                 }
 
                 std::string int_string = collect_integer(l, is_hex);
-                token_t token = { int_string, token_type::int_literal, line_number };
+                Token* token = new Token(filename, int_string, TokenType::int_literal, line_number);
                 tokens.push_back(token);
             } else if(l[line_index] == '$') { // Hex integer
                 line_index++;
@@ -78,13 +85,28 @@ std::vector<token_t> lex(std::string filename) {
                 }
 
                 std::string int_string = collect_integer(l, true);
-                token_t token = { int_string, token_type::integer, line_number };
+                Token* token = new Token(filename, int_string, TokenType::integer, line_number);
+                tokens.push_back(token);
+            } else if(l[line_index] == '&') { // Reference
+                line_index++;
+                std::string value = collect_identifier(l);
+                Token* token = new Token(filename, value, TokenType::reference, line_number);
+                tokens.push_back(token);
+            } else if(l[line_index] == '[') { // Array access
+                line_index++;
+                std::string int_string = collect_integer(l, false);
+                if(l[line_index] != ']') {
+                    std::cerr << "Error: Unnclosed square brackets on line " << line_number << std::endl;
+                    std::exit(1);
+                }
+                line_index++;
+                Token* token = new Token(filename, int_string, TokenType::array_access, line_number);
                 tokens.push_back(token);
             } else if(l[line_index] == '.') { // Directive
                 line_index++; // Skip the '.'
                 std::string directive = collect_identifier(l); // Collect directive
                 if(is_directive(directive)) {
-                    token_t token = { directive, token_type::directive, line_number };
+                    Token* token = new Token(filename, directive, TokenType::directive, line_number);
                     tokens.push_back(token);
                 } else {
                     std::cerr << "Error: Unknown directive '." << directive << "' on line " << line_number << std::endl;
@@ -94,10 +116,12 @@ std::vector<token_t> lex(std::string filename) {
                 break; // Skip the whole line if we encounter a comment ('//')
             } else if(l[line_index] == '"') { // String
                 std::string string_val = collect_string(l);
-                token_t token = { string_val, token_type::string_literal, line_number };
+                Token* token = new Token(filename, string_val, TokenType::string_literal, line_number);
                 tokens.push_back(token);
             } else if(l[line_index] == ' ') { // Whitespace
                 line_index++;
+            } else if(l[line_index] == 13) {
+                line_index++; // Skip this character
             } else {
                 std::cerr << "Error: Unknown character '" << l[line_index] << "' on line " << line_number << ", " << line_index + 1 << " characters in" << std::endl;
                 std::exit(1);
@@ -112,12 +136,12 @@ std::vector<token_t> lex(std::string filename) {
     return tokens;
 }
 
-void unexpected_char_err(char character, int line_number, int index) {
+void Lexer::unexpected_char_err(char character, int line_number, int index) {
     std::cerr << "Error: Unexpected character '" << character << "' on line " << line_number << ", " << index << " characters in" << std::endl;
     std::exit(1);
 }
 
-bool is_mnemonic(std::string value) {
+bool Lexer::is_mnemonic(std::string value) {
     for(std::string mnemonic : globals::mnemonics) {
         if(mnemonic == value) {
             return true;
@@ -126,7 +150,7 @@ bool is_mnemonic(std::string value) {
     return false;
 }
 
-bool is_directive(std::string value) {
+bool Lexer::is_directive(std::string value) {
     for(std::string directive : globals::directives) {
         if(directive == value) {
             return true;
@@ -135,12 +159,12 @@ bool is_directive(std::string value) {
     return false;
 }
 
-std::string collect_identifier(std::string line) {
+std::string Lexer::collect_identifier(std::string line) {
     std::string collect;
     collect.push_back(line[line_index]);
     line_index++;
     while(true) {
-        if(!isalnum(line[line_index])) {
+        if(!isalnum(line[line_index]) && line[line_index] != '_') {
             break;
         }
         collect.push_back(line[line_index]);
@@ -150,7 +174,7 @@ std::string collect_identifier(std::string line) {
     return collect;
 }
 
-std::string collect_string(std::string line) {
+std::string Lexer::collect_string(std::string line) {
     line_index++;
     
     std::string collect;
@@ -165,7 +189,7 @@ std::string collect_string(std::string line) {
     return collect;
 }
 
-std::string collect_integer(std::string line, bool is_hex) {
+std::string Lexer::collect_integer(std::string line, bool is_hex) {
     std::string int_string;
     int_string.push_back(line[line_index]);
     line_index++;
@@ -187,36 +211,21 @@ std::string collect_integer(std::string line, bool is_hex) {
     return int_string;
 }
 
-std::string type_to_string(int type) {
+std::string type_to_string(TokenType type) {
     switch(type) {
-        case token_type::mnemonic: {
-            return "mnemonic";
-        } break;
+        case TokenType::eof: return "eof";
+        case TokenType::mnemonic: return "mnemonic";
+        case TokenType::integer: return "integer";
+        case TokenType::identifier: return "identifier";
+        case TokenType::int_literal: return "int_literal";
+        case TokenType::char_literal: return "char_literal";
+        case TokenType::register_char: return "register";
+        case TokenType::string_literal: return "string_literal";
+        case TokenType::label: return "label";
+        case TokenType::directive: return "directive";
+        case TokenType::reference: return "reference";
+        case TokenType::array_access: return "array_access";
 
-        case token_type::integer: {
-            return "integer";
-        } break;
-
-        case token_type::int_literal: {
-            return "int_literal";
-        } break;
-
-        case token_type::register_char: {
-            return "register";
-        }
-
-        case token_type::string_literal: {
-            return "string_literal";
-        }
-
-        case token_type::directive: {
-            return "directive";
-        }
-
-        case token_type::label: return "label";
-
-        default: {
-            return "unknown";
-        }
+        default: return "unknown";
     }
 }

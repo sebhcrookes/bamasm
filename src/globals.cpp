@@ -1,5 +1,7 @@
 #include "globals.h"
 
+// This namespace contains variables which can be accessed from anywhere within the assembler
+
 namespace globals {
 
     std::string version = "V1.0";
@@ -8,13 +10,17 @@ namespace globals {
 
     std::vector<std::string> mnemonics = {
         "mov",
+        "sto",
         "cll",
-        "jmp"
+        "jmp",
+        "psh",
+        "pop"
     };
 
     std::vector<std::string> directives = {
         "ascii",
         "asciiz",
-        "array"
+        "array",
+        "uint64"
     };
 }

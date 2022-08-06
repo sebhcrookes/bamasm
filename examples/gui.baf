@@ -1,0 +1,32 @@
+mov A &window_title
+mov B 16 #$320
+mov C 16 #$258
+mov D 08 #$40
+mov E &framebuffer
+
+mov S &driver_name
+mov T &function
+
+psh A 64
+psh D 64
+psh D 64
+psh B 64
+psh C 64
+psh E 64
+
+psh S 64
+psh T 64
+
+cll #$0100 #$00
+
+loop:
+    jmp loop
+
+cll #$02 #$00
+
+driver_name: .asciiz "GUI"
+function: .asciiz "add_window"
+
+window_title: .asciiz "Example"
+
+framebuffer: .array 307200 4
