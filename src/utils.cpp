@@ -11,7 +11,7 @@ uint8_t get_register(std::string register_name) {
 }
 
 uint64_t integer_to_hexint(std::string integer, int line_number) {
-    return integer_to_hexint(std::stol(integer), line_number);
+    return integer_to_hexint(std::stoull(integer), line_number);
 }
 
 uint64_t integer_to_hexint(uint64_t integer, int line_number) {
@@ -55,7 +55,7 @@ uint8_t get_integer_size(uint8_t integer_size) {
 
 // Converts an integer into a byte array with big-endian byte ordering
 std::vector<uint8_t> integer_to_bytes(std::string integer, int size) {
-    uint64_t int_val = std::stol(integer);
+    uint64_t int_val = std::stoull(integer);
 
     std::vector<uint8_t> array(size / 8);
     for (int i = 0; i < size / 8; i++) {

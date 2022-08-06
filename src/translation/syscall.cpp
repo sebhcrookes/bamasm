@@ -10,7 +10,7 @@ void Translator::parse_cll(std::vector<uint8_t>* machine_code) {
     position++;
 
     expect(TokenType::int_literal); // Deprecated second argument
-    uint8_t value = stoi(tokens[position]->contents);
+    uint8_t value = std::stoull(tokens[position]->contents);
     position++;
 
     machine_code->push_back(syscall_type[0]);

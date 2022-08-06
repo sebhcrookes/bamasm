@@ -11,6 +11,6 @@ void Translator::parse_jmp(std::vector<uint8_t>* machine_code) {
     position++;
 
     for(int i = 0; i < 8; i++) {
-        machine_code->push_back(0xFF);
+        machine_code->push_back(0x00);
     }
 }

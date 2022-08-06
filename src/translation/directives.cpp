@@ -21,10 +21,10 @@ void Translator::translate_directive(std::vector<uint8_t>* machine_code) {
             machine_code->push_back(0x00);
     } else if(type == "array") {
         expect(TokenType::integer);
-        uint64_t arr_size = stoi(tokens[position]->contents);
+        uint64_t arr_size = std::stoull(tokens[position]->contents);
         position++;
         expect(TokenType::integer);
-        uint64_t element_size = stoi(tokens[position]->contents);
+        uint64_t element_size = std::stoull(tokens[position]->contents);
         position++;
 
         for(int i = 0; i < arr_size; i++) {
@@ -35,7 +35,7 @@ void Translator::translate_directive(std::vector<uint8_t>* machine_code) {
 
     } else if(type == "uint64") {
         expect(TokenType::integer);    
-        uint64_t value = stoi(tokens[position]->contents);
+        uint64_t value = std::stoull(tokens[position]->contents);
         position++;
         
         std::vector<uint8_t> bytes = integer_to_bytes(std::to_string(value), 64);

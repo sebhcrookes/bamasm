@@ -1,0 +1,4 @@
+mov A 08 #$FF
+mov B 16 #$FFFF
+mov C 32 #$FFFFFFFF
+mov D 64 #$FFFFFFFFFFFFFFFF

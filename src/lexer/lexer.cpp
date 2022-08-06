@@ -64,23 +64,23 @@ std::vector<Token*> Lexer::lex() {
             } else if(l[line_index] == '#') { // Literal integer
                 line_index++;
 
-                bool is_hex = false;
+                bool ishex = false;
 
                 if(l[line_index] == '$') {
                     line_index++;
-                    is_hex = true;
+                    ishex = true;
                 }
                 
-                if(!isdigit(l[line_index])) {
+                if((ishex && !isxdigit(l[line_index])) || (!ishex && !isdigit(l[line_index]))) {
                     unexpected_char_err(l[line_index], line_number, line_index + 1);
                 }
 
-                std::string int_string = collect_integer(l, is_hex);
+                std::string int_string = collect_integer(l, ishex);
                 Token* token = new Token(filename, int_string, TokenType::int_literal, line_number);
                 tokens.push_back(token);
             } else if(l[line_index] == '$') { // Hex integer
                 line_index++;
-                if(!isdigit(l[line_index])) {
+                if(!isxdigit(l[line_index])) {
                     unexpected_char_err(l[line_index], line_number, line_index + 1);
                 }
 
@@ -96,7 +96,7 @@ std::vector<Token*> Lexer::lex() {
                 line_index++;
                 std::string int_string = collect_integer(l, false);
                 if(l[line_index] != ']') {
-                    std::cerr << "Error: Unnclosed square brackets on line " << line_number << std::endl;
+                    std::cerr << "Error: Unclosed square brackets on line " << line_number << std::endl;
                     std::exit(1);
                 }
                 line_index++;
@@ -204,7 +204,7 @@ std::string Lexer::collect_integer(std::string line, bool is_hex) {
     }
 
     if(is_hex) { // We need to convert the hex string into a decimal string
-        uint64_t val = std::stoul(int_string, nullptr, 16);
+        uint64_t val = std::stoull(int_string, nullptr, 16);
         int_string = std::to_string(val);
     }
 

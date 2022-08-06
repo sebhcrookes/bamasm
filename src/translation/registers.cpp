@@ -18,7 +18,7 @@ void Translator::parse_mov(std::vector<uint8_t>* machine_code) {
         uint8_t addressing_mode = 0;
         std::vector<uint8_t> value;
 
-        uint8_t integer_size = std::stoi(tokens[position]->contents);
+        uint8_t integer_size = std::stoull(tokens[position]->contents);
         position++;
 
         if(tokens[position]->type == TokenType::identifier) {
@@ -29,7 +29,7 @@ void Translator::parse_mov(std::vector<uint8_t>* machine_code) {
             int index = 0;
 
             if(tokens[position]->type == TokenType::array_access) {
-                index = stoi(tokens[position]->contents);
+                index = std::stoull(tokens[position]->contents);
                 position++;
             }
 
@@ -74,7 +74,7 @@ void Translator::parse_mov(std::vector<uint8_t>* machine_code) {
         label_reps.push_back(replacement);
 
         for(int i = 0; i < 8; i++) {
-            machine_code->push_back(0xFF);
+            machine_code->push_back(0x00);
         }
 
         position++;
@@ -99,7 +99,7 @@ void Translator::parse_sto(std::vector<uint8_t>* machine_code) {
         uint8_t addressing_mode = 0;
         std::vector<uint8_t> value;
 
-        uint8_t integer_size = std::stoi(tokens[position]->contents);
+        uint8_t integer_size = std::stoull(tokens[position]->contents);
         position++;
 
         if(tokens[position]->type == TokenType::identifier) {
@@ -110,7 +110,7 @@ void Translator::parse_sto(std::vector<uint8_t>* machine_code) {
             int index = 0;
 
             if(tokens[position]->type == TokenType::array_access) {
-                index = stoi(tokens[position]->contents);
+                index = std::stoull(tokens[position]->contents);
                 position++;
             }
 
@@ -123,7 +123,7 @@ void Translator::parse_sto(std::vector<uint8_t>* machine_code) {
             label_reps.push_back(replacement);
 
             for(int i = 0; i < 8; i++) {
-                machine_code->push_back(0xFF);
+                machine_code->push_back(0x00);
             }
 
         }
